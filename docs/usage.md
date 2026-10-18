@@ -12,20 +12,23 @@ The script is safe to run repeatedly. Remove an interface with `sudo ip link del
 ## Run the application
 
 ```
-build/debug/src/CanLogVisualizer
-build/debug/src/CanLogVisualizer --interface vcan1
+build/debug/app/CanLogVisualizer
+build/debug/app/CanLogVisualizer --interface vcan1
 ```
 
 The interface defaults to `vcan0`. Run with `--help` for all options. Press **Connect** to start receiving frames.
 
 ## Generate traffic
 
-With `can-utils` installed:
+With `can-utils` installed, start `candump` in one terminal before sending
+frames; start the application and connect to the same interface to view them.
+Quote each `cansend` frame argument: shells such as zsh treat `#` specially
+when it is unquoted.
 
 ```
 cangen vcan0 -g 10          # random frames every 10 ms
-cansend vcan0 123#DEADBEEF  # standard frame (11-bit ID)
-cansend vcan0 12345678#11   # extended frame (8 hex digits = 29-bit ID)
-cansend vcan0 123#R         # remote frame
+cansend vcan0 '123#DEADBEEF'  # standard frame (11-bit ID)
+cansend vcan0 '12345678#11'   # extended frame (8 hex digits = 29-bit ID)
+cansend vcan0 '123#R'         # remote frame
 candump vcan0               # compare with what the application shows
 ```

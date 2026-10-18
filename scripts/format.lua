@@ -77,10 +77,10 @@ end
 
 local function find_sources()
     local raw = capture(string.format(
-        "find %q/src %q/tests -type f \\( -name '*.c' -o -name '*.h' -o -name '*.cpp' -o -name '*.hpp' \\) | sort",
+        "find %q/app %q/core -type f \\( -name '*.c' -o -name '*.h' -o -name '*.cpp' -o -name '*.hpp' \\) | sort",
         ROOT, ROOT))
     if not raw or raw == "" then
-        die("no sources found under %s/src or %s/tests", ROOT, ROOT)
+        die("no sources found under %s/app or %s/core", ROOT, ROOT)
     end
     local files = {}
     for path in raw:gmatch("[^\n]+") do

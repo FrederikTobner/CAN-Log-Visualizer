@@ -17,7 +17,7 @@ cmake --preset debug
 cmake --build --preset debug
 ```
 
-Use `release` instead of `debug` for an optimized build. Binaries end up in `build/<preset>/`; the application is `build/<preset>/src/CanLogVisualizer`.
+Use `release` instead of `debug` for an optimized build. Binaries end up in `build/<preset>/`; the application is `build/<preset>/app/CanLogVisualizer`.
 
 ## Test
 

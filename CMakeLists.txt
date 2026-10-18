@@ -12,8 +12,5 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS Widgets)
 
 include(CTest)
 
-add_subdirectory(src)
-
-if(BUILD_TESTING)
-    add_subdirectory(tests)
-endif()
+add_subdirectory(core)
+add_subdirectory(app)
