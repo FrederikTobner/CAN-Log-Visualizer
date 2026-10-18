@@ -1,0 +1,178 @@
+#!/usr/bin/env lua
+--- clang-format runner for JANUS.
+--
+-- Checks or fixes the formatting of all sources against the
+-- project's .clang-format style file.
+--
+-- Usage: lua scripts/format.lua [OPTIONS]
+-- Run with --help for full usage information.
+--
+-- @copyright Copyright (C) 2026 Frederik Tobner 
+-- @license   GNU Affero General Public License v3.0 or later
+
+local SCRIPT_DIR = arg[0]:match("^(.*)/[^/]+$") or "."
+package.path = SCRIPT_DIR .. "/lib/?.lua;" .. package.path
+
+local ansi      = require("ansi")
+local shell     = require("shell")
+local cli       = require("cli")
+local project   = require("project")
+local toolchain = require("toolchain")
+
+local C          = ansi.C
+local die        = cli.die
+local exec       = shell.exec
+local capture    = shell.capture
+local short_path = project.short_path
+
+local ROOT = project.root()
+
+-- The CI pipeline pins clang-format-18.  Using a different version can produce
+-- different results (compound-literal spacing, brace-init rules, etc.), giving
+-- a false pass locally while CI still fails.
+local TOOL = toolchain.pinned_tool("clang-format", "18", { "17", "16" })
+
+local USAGE = [[
+Usage: lua scripts/format.lua [OPTIONS]
+
+Checks or fixes the formatting of all sources against .clang-format.
+
+Options:
+  -f, --fix             Reformat files in-place (default: check only)
+      --filter PATTERN  Only process files whose path matches PATTERN
+  -v, --verbose         Print every file, not just failures / fixes
+  -h, --help            Print this message and exit
+
+Exit codes:
+  0   All files are correctly formatted (check) or all done (fix)
+  1   One or more files need formatting (check mode only)
+]]
+
+local opts = {
+    fix     = false,
+    filter  = nil,
+    verbose = false,
+}
+
+do
+    local i = 1
+    while i <= #arg do
+        local a = arg[i]
+        if a == "-h" or a == "--help" then
+            io.write(USAGE); os.exit(0)
+        elseif a == "-f" or a == "--fix" then
+            opts.fix = true
+        elseif a == "--filter" then
+            i = i + 1
+            if not arg[i] then die("--filter requires an argument") end
+            opts.filter = arg[i]
+        elseif a == "-v" or a == "--verbose" then
+            opts.verbose = true
+        else
+            die("unknown option: %s  (try --help)", a)
+        end
+        i = i + 1
+    end
+end
+
+local function find_sources()
+    local raw = capture(string.format(
+        "find %q/src -type f \\( -name '*.c' -o -name '*.h' -o -name '*.cpp' -o -name '*.hpp' \\) | sort",
+        ROOT))
+    if not raw or raw == "" then
+        die("no sources found under %s/src", ROOT)
+    end
+    local files = {}
+    for path in raw:gmatch("[^\n]+") do
+        if not opts.filter or path:match(opts.filter) then
+            files[#files + 1] = path
+        end
+    end
+    if #files == 0 then
+        die("no files matched filter '%s'", opts.filter or "(none)")
+    end
+    return files
+end
+
+--- Returns true if the file is already correctly formatted.
+local function is_clean(path)
+    local ok, _ = exec(string.format(
+        "%s --dry-run --Werror %q 2>/dev/null", TOOL, path))
+    return ok
+end
+
+--- Reformat a file in-place.
+local function fix_file(path)
+    exec(string.format("%s -i %q", TOOL, path))
+end
+
+local function print_file_result(i, total, path, label)
+    io.write(string.format("[%d/%d] %-58s %s\n",
+        i, total, short_path(path), label))
+    io.flush()
+end
+
+local function main()
+    local mode_label = opts.fix and "fix" or "check"
+    io.write(string.format("%s── JANUS format %s ──%s  (%s)\n\n",
+        C.bold, mode_label, C.reset, TOOL))
+
+    local files = find_sources()
+    local n           = #files
+    local dirty_count = 0
+    local fixed_count = 0
+    local clean_count = 0
+
+    for i, path in ipairs(files) do
+        local clean = is_clean(path)
+        if clean then
+            clean_count = clean_count + 1
+            if opts.verbose then
+                print_file_result(i, n, path, C.green .. "✓" .. C.reset)
+            end
+        else
+            dirty_count = dirty_count + 1
+            if opts.fix then
+                fix_file(path)
+                fixed_count = fixed_count + 1
+                print_file_result(i, n, path, C.yellow .. "fixed" .. C.reset)
+            else
+                print_file_result(i, n, path,
+                    C.red .. "✗  needs formatting" .. C.reset)
+            end
+        end
+    end
+
+    -- Summary
+    io.write("\n")
+    local sep = string.rep("─", 52)
+    io.write(sep .. "\n")
+    if opts.fix then
+        if fixed_count == 0 then
+            io.write(string.format(" %sAll %d files already correctly formatted%s\n",
+                C.green, n, C.reset))
+        else
+            io.write(string.format(
+                " %sFixed %d of %d files%s  (%d already correct)\n",
+                C.yellow, fixed_count, n, C.reset, clean_count))
+        end
+    else
+        if dirty_count == 0 then
+            io.write(string.format(
+                " %sAll %d files correctly formatted%s\n",
+                C.green, n, C.reset))
+        else
+            io.write(string.format(
+                " %s%d of %d files need formatting%s\n",
+                C.red, dirty_count, n, C.reset))
+            io.write(string.format(
+                " %sRun with --fix to apply changes%s\n",
+                C.dim, C.reset))
+        end
+    end
+    io.write(sep .. "\n")
+
+    os.exit((not opts.fix and dirty_count > 0) and 1 or 0)
+end
+
+main()

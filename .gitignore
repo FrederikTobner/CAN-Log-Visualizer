@@ -1,0 +1,40 @@
+##############################
+## clangd                   ##
+##############################
+.[Cc][Aa][Cc][Hh][Ee]/
+.[Cc][Ll][Aa][Nn][Gg][Dd]/
+compile_commands.json
+
+##############################
+## cmake                    ##
+##############################
+[Bb][Uu][Ii][Ll][Dd]*/
+cmake-build-*/
+CMakeFiles/
+.[Dd][Ee][Pp][Ss]/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+##############################
+## Build Artifacts          ##
+##############################
+*.o
+*.a
+*.elf
+*.bin
+*.iso
+*.img
+*.map
+
+##############################
+## Visual Studio 💩         ##
+##############################
+.[Vv][Ss][Cc][Oo][Dd][Ee]/
+
+
+##############################
+## Temporary Files          ##
+##############################
+[Pp][Ll][Aa][Nn][Nn][Ii][Nn][Gg]/
