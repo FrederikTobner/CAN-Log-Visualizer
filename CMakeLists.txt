@@ -10,4 +10,7 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Widgets)
 
-add_subdirectory(src)
+include(CTest)
+
+add_subdirectory(core)
+add_subdirectory(app)

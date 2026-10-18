@@ -1,5 +1,5 @@
 #!/usr/bin/env lua
---- clang-format runner for JANUS.
+--- clang-format runner for the CAN Log Analyzer.
 --
 -- Checks or fixes the formatting of all sources against the
 -- project's .clang-format style file.
@@ -8,7 +8,7 @@
 -- Run with --help for full usage information.
 --
 -- @copyright Copyright (C) 2026 Frederik Tobner 
--- @license   GNU Affero General Public License v3.0 or later
+-- @license   GNU General Public License v3.0 or later
 
 local SCRIPT_DIR = arg[0]:match("^(.*)/[^/]+$") or "."
 package.path = SCRIPT_DIR .. "/lib/?.lua;" .. package.path
@@ -77,10 +77,10 @@ end
 
 local function find_sources()
     local raw = capture(string.format(
-        "find %q/src -type f \\( -name '*.c' -o -name '*.h' -o -name '*.cpp' -o -name '*.hpp' \\) | sort",
-        ROOT))
+        "find %q/app %q/core -type f \\( -name '*.c' -o -name '*.h' -o -name '*.cpp' -o -name '*.hpp' \\) | sort",
+        ROOT, ROOT))
     if not raw or raw == "" then
-        die("no sources found under %s/src", ROOT)
+        die("no sources found under %s/app or %s/core", ROOT, ROOT)
     end
     local files = {}
     for path in raw:gmatch("[^\n]+") do
@@ -114,7 +114,7 @@ end
 
 local function main()
     local mode_label = opts.fix and "fix" or "check"
-    io.write(string.format("%s── JANUS format %s ──%s  (%s)\n\n",
+    io.write(string.format("%s── CAN Log Analyzer format %s ──%s  (%s)\n\n",
         C.bold, mode_label, C.reset, TOOL))
 
     local files = find_sources()
