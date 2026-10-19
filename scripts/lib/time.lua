@@ -1,7 +1,7 @@
---- Time/duration helpers shared by the JANUS Lua scripts.
+--- Time/duration helpers shared by the project's Lua scripts.
 --
 -- @copyright Copyright (C) 2026 Frederik Tobner
--- @license   GNU Affero General Public License v3.0 or later
+-- @license   GNU General Public License v3.0 or later
 
 local M = {}
 

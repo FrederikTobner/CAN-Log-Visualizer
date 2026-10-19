@@ -73,7 +73,7 @@ void CanTraceModel::appendFrames(QList<CanFrame> const & frames) {
     // Frames of this batch that cannot fit even into an empty model.
     qsizetype const skipped = std::max<qsizetype>(frames.size() - m_maxRows, 0);
     qsizetype const incoming = frames.size() - skipped;
-    qsizetype const current = static_cast<qsizetype>(m_frames.size());
+    auto const current = static_cast<qsizetype>(m_frames.size());
     qsizetype const overflow = std::max<qsizetype>(current + incoming - m_maxRows, 0);
 
     if (overflow > 0) {

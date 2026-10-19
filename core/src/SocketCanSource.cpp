@@ -9,6 +9,7 @@
 #include <chrono>
 #include <cstring>
 #include <ctime>
+#include <system_error>
 
 #include <net/if.h>
 #include <sys/socket.h>
@@ -24,12 +25,12 @@ namespace {
 constexpr int kMaxFramesPerDrain = 1024;
 
 QString errnoText() {
-    return QString::fromLocal8Bit(std::strerror(errno));
+    return QString::fromStdString(std::generic_category().message(errno));
 }
 
 double nowSeconds() {
-    auto const since_epoch = std::chrono::system_clock::now().time_since_epoch();
-    return std::chrono::duration<double>(since_epoch).count();
+    auto const sinceEpoch = std::chrono::system_clock::now().time_since_epoch();
+    return std::chrono::duration<double>(sinceEpoch).count();
 }
 
 } // namespace
@@ -126,7 +127,7 @@ void SocketCanSource::drainSocket() {
         can_frame raw{};
         alignas(cmsghdr) std::array<char, CMSG_SPACE(sizeof(timespec))> control{};
 
-        iovec buffer{&raw, sizeof(raw)};
+        iovec buffer{.iov_base = &raw, .iov_len = sizeof(raw)};
         msghdr message{};
         message.msg_iov = &buffer;
         message.msg_iovlen = 1;
@@ -154,7 +155,7 @@ void SocketCanSource::drainSocket() {
             if (header->cmsg_level == SOL_SOCKET && header->cmsg_type == SCM_TIMESTAMPNS) {
                 timespec stamp{};
                 std::memcpy(&stamp, CMSG_DATA(header), sizeof(stamp));
-                timestamp = static_cast<double>(stamp.tv_sec) + static_cast<double>(stamp.tv_nsec) * 1e-9;
+                timestamp = static_cast<double>(stamp.tv_sec) + (static_cast<double>(stamp.tv_nsec) * 1e-9);
             }
         }
 

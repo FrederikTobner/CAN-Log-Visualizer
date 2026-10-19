@@ -1,35 +1,27 @@
 #!/usr/bin/env lua
---- clang-format runner for the CAN Log Analyzer.
+--- clang-format runner for the CAN Log Visualizer.
 --
--- Checks or fixes the formatting of all sources against the
--- project's .clang-format style file.
+-- Checks or fixes the formatting of all sources under app/ and core/
+-- against the project's .clang-format style file.
 --
 -- Usage: lua scripts/format.lua [OPTIONS]
 -- Run with --help for full usage information.
 --
--- @copyright Copyright (C) 2026 Frederik Tobner 
+-- @copyright Copyright (C) 2026 Frederik Tobner
 -- @license   GNU General Public License v3.0 or later
 
-local SCRIPT_DIR = arg[0]:match("^(.*)/[^/]+$") or "."
-package.path = SCRIPT_DIR .. "/lib/?.lua;" .. package.path
+package.path = (arg[0]:match("^(.*)/[^/]+$") or ".") .. "/lib/?.lua;" .. package.path
 
-local ansi      = require("ansi")
+local C         = require("ansi").C
 local shell     = require("shell")
 local cli       = require("cli")
 local project   = require("project")
 local toolchain = require("toolchain")
 
-local C          = ansi.C
-local die        = cli.die
-local exec       = shell.exec
-local capture    = shell.capture
-local short_path = project.short_path
-
 local ROOT = project.root()
 
--- The CI pipeline pins clang-format-18.  Using a different version can produce
--- different results (compound-literal spacing, brace-init rules, etc.), giving
--- a false pass locally while CI still fails.
+-- The CI pipeline pins clang-format-18. Other versions can format differently,
+-- giving a false pass locally while CI still fails.
 local TOOL = toolchain.pinned_tool("clang-format", "18", { "17", "16" })
 
 local USAGE = [[
@@ -48,131 +40,50 @@ Exit codes:
   1   One or more files need formatting (check mode only)
 ]]
 
-local opts = {
-    fix     = false,
-    filter  = nil,
-    verbose = false,
-}
+local opts = cli.parse(USAGE, {
+    { "-f", "--fix", "fix" },
+    { nil, "--filter", "filter", true },
+    { "-v", "--verbose", "verbose" },
+}, {})
 
-do
-    local i = 1
-    while i <= #arg do
-        local a = arg[i]
-        if a == "-h" or a == "--help" then
-            io.write(USAGE); os.exit(0)
-        elseif a == "-f" or a == "--fix" then
-            opts.fix = true
-        elseif a == "--filter" then
-            i = i + 1
-            if not arg[i] then die("--filter requires an argument") end
-            opts.filter = arg[i]
-        elseif a == "-v" or a == "--verbose" then
-            opts.verbose = true
-        else
-            die("unknown option: %s  (try --help)", a)
-        end
-        i = i + 1
+local raw = shell.capture(string.format(
+    "find %s/app %s/core -type f \\( -name '*.[ch]' -o -name '*.[ch]pp' \\) | sort",
+    shell.quote(ROOT), shell.quote(ROOT)))
+local files = {}
+for path in raw:gmatch("[^\n]+") do files[#files + 1] = path end
+files = project.select(files, opts.filter)
+
+io.write(string.format("%s── CAN Log Visualizer format %s ──%s  (%s)\n\n",
+    C.bold, opts.fix and "fix" or "check", C.reset, TOOL))
+
+local n, dirty = #files, 0
+for i, path in ipairs(files) do
+    local quoted = shell.quote(path)
+    local clean = shell.exec(string.format("%s --dry-run --Werror %s 2>/dev/null", TOOL, quoted))
+    if not clean then
+        dirty = dirty + 1
+        if opts.fix then shell.exec(string.format("%s -i %s", TOOL, quoted)) end
+    end
+    if opts.verbose or not clean then
+        local label = clean and (C.green .. "✓")
+            or opts.fix and (C.yellow .. "fixed")
+            or (C.red .. "✗  needs formatting")
+        io.write(string.format("[%d/%d] %-58s %s%s\n", i, n, project.short_path(path), label, C.reset))
     end
 end
 
-local function find_sources()
-    local raw = capture(string.format(
-        "find %q/app %q/core -type f \\( -name '*.c' -o -name '*.h' -o -name '*.cpp' -o -name '*.hpp' \\) | sort",
-        ROOT, ROOT))
-    if not raw or raw == "" then
-        die("no sources found under %s/app or %s/core", ROOT, ROOT)
-    end
-    local files = {}
-    for path in raw:gmatch("[^\n]+") do
-        if not opts.filter or path:match(opts.filter) then
-            files[#files + 1] = path
-        end
-    end
-    if #files == 0 then
-        die("no files matched filter '%s'", opts.filter or "(none)")
-    end
-    return files
+local sep = string.rep("─", 52)
+io.write(string.format("\n%s\n ", sep))
+if dirty == 0 then
+    io.write(string.format("%sAll %d files %s%s\n", C.green, n,
+        opts.fix and "already correctly formatted" or "correctly formatted", C.reset))
+elseif opts.fix then
+    io.write(string.format("%sFixed %d of %d files%s  (%d already correct)\n",
+        C.yellow, dirty, n, C.reset, n - dirty))
+else
+    io.write(string.format("%s%d of %d files need formatting%s\n %sRun with --fix to apply changes%s\n",
+        C.red, dirty, n, C.reset, C.dim, C.reset))
 end
+io.write(sep .. "\n")
 
---- Returns true if the file is already correctly formatted.
-local function is_clean(path)
-    local ok, _ = exec(string.format(
-        "%s --dry-run --Werror %q 2>/dev/null", TOOL, path))
-    return ok
-end
-
---- Reformat a file in-place.
-local function fix_file(path)
-    exec(string.format("%s -i %q", TOOL, path))
-end
-
-local function print_file_result(i, total, path, label)
-    io.write(string.format("[%d/%d] %-58s %s\n",
-        i, total, short_path(path), label))
-    io.flush()
-end
-
-local function main()
-    local mode_label = opts.fix and "fix" or "check"
-    io.write(string.format("%s── CAN Log Analyzer format %s ──%s  (%s)\n\n",
-        C.bold, mode_label, C.reset, TOOL))
-
-    local files = find_sources()
-    local n           = #files
-    local dirty_count = 0
-    local fixed_count = 0
-    local clean_count = 0
-
-    for i, path in ipairs(files) do
-        local clean = is_clean(path)
-        if clean then
-            clean_count = clean_count + 1
-            if opts.verbose then
-                print_file_result(i, n, path, C.green .. "✓" .. C.reset)
-            end
-        else
-            dirty_count = dirty_count + 1
-            if opts.fix then
-                fix_file(path)
-                fixed_count = fixed_count + 1
-                print_file_result(i, n, path, C.yellow .. "fixed" .. C.reset)
-            else
-                print_file_result(i, n, path,
-                    C.red .. "✗  needs formatting" .. C.reset)
-            end
-        end
-    end
-
-    -- Summary
-    io.write("\n")
-    local sep = string.rep("─", 52)
-    io.write(sep .. "\n")
-    if opts.fix then
-        if fixed_count == 0 then
-            io.write(string.format(" %sAll %d files already correctly formatted%s\n",
-                C.green, n, C.reset))
-        else
-            io.write(string.format(
-                " %sFixed %d of %d files%s  (%d already correct)\n",
-                C.yellow, fixed_count, n, C.reset, clean_count))
-        end
-    else
-        if dirty_count == 0 then
-            io.write(string.format(
-                " %sAll %d files correctly formatted%s\n",
-                C.green, n, C.reset))
-        else
-            io.write(string.format(
-                " %s%d of %d files need formatting%s\n",
-                C.red, dirty_count, n, C.reset))
-            io.write(string.format(
-                " %sRun with --fix to apply changes%s\n",
-                C.dim, C.reset))
-        end
-    end
-    io.write(sep .. "\n")
-
-    os.exit((not opts.fix and dirty_count > 0) and 1 or 0)
-end
-
-main()
+os.exit((dirty > 0 and not opts.fix) and 1 or 0)

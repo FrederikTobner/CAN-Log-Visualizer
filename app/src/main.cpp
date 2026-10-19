@@ -4,7 +4,7 @@
 #include "gui/MainWindow.h"
 
 int main(int argc, char * argv[]) {
-    QApplication app(argc, argv);
+    QApplication const app(argc, argv);
     QApplication::setApplicationName("CanLogVisualizer");
 
     QCommandLineParser parser;
@@ -17,5 +17,5 @@ int main(int argc, char * argv[]) {
     MainWindow window(parser.value(interfaceOption));
     window.show();
 
-    return app.exec();
+    return QApplication::exec();
 }

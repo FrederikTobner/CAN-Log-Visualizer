@@ -1,7 +1,7 @@
---- Project-root resolution shared by the JANUS Lua scripts.
+--- Project-root resolution and file selection shared by the project's Lua scripts.
 --
 -- @copyright Copyright (C) 2026 Frederik Tobner
--- @license   GNU Affero General Public License v3.0 or later
+-- @license   GNU General Public License v3.0 or later
 
 local shell = require("shell")
 local cli   = require("cli")
@@ -37,7 +37,24 @@ end
 --- @param path string absolute path
 --- @return string path relative to the project root
 function M.short_path(path)
-    return (path:gsub("^" .. M.root() .. "/", ""))
+    local prefix = M.root() .. "/"
+    return path:sub(1, #prefix) == prefix and path:sub(#prefix + 1) or path
+end
+
+--- Restrict a file list to paths matching a Lua pattern; dies if nothing is left.
+---
+--- @param files  table list of paths
+--- @param filter string|nil Lua pattern, or nil to keep everything
+--- @return table filtered list
+function M.select(files, filter)
+    local out = {}
+    for _, f in ipairs(files) do
+        if not filter or f:match(filter) then out[#out + 1] = f end
+    end
+    if #out == 0 then
+        cli.die(filter and "no files matched filter '%s'" or "no source files found", filter)
+    end
+    return out
 end
 
 return M

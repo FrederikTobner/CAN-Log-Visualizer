@@ -1,0 +1,79 @@
+---
+Checks: >
+  -*,
+  bugprone-*,
+  clang-analyzer-*,
+  concurrency-*,
+  cppcoreguidelines-*,
+  misc-*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  -bugprone-easily-swappable-parameters,
+  -cppcoreguidelines-avoid-c-arrays,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-macro-usage,
+  -cppcoreguidelines-non-private-member-variables-in-classes,
+  -cppcoreguidelines-owning-memory,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,
+  -cppcoreguidelines-pro-bounds-constant-array-index,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -cppcoreguidelines-pro-type-union-access,
+  -cppcoreguidelines-pro-type-vararg,
+  -cppcoreguidelines-special-member-functions,
+  -cppcoreguidelines-use-enum-class,
+  -misc-include-cleaner,
+  -misc-non-private-member-variables-in-classes,
+  -misc-no-recursion,
+  -modernize-avoid-c-arrays,
+  -modernize-use-nodiscard,
+  -modernize-use-trailing-return-type,
+  -performance-enum-size,
+  -portability-avoid-pragma-once,
+  -readability-identifier-length,
+  -readability-magic-numbers,
+  -readability-trailing-comma,
+  -readability-uppercase-literal-suffix
+
+# Every enabled check is an error so CI fails on new findings.
+WarningsAsErrors: "*"
+
+# Only report on project headers. Qt headers, generated moc/autogen files in
+# the build tree and system headers are excluded.
+HeaderFilterRegex: '/(app/src|core/include)/'
+SystemHeaders: false
+
+FormatStyle: file
+
+CheckOptions:
+  # Naming follows the existing code base: Types, camelCase functions and
+  # variables, m_ prefix for private members, kName for constants.
+  - { key: readability-identifier-naming.NamespaceCase,              value: lower_case }
+  - { key: readability-identifier-naming.ClassCase,                  value: CamelCase }
+  - { key: readability-identifier-naming.StructCase,                 value: CamelCase }
+  - { key: readability-identifier-naming.EnumCase,                   value: CamelCase }
+  - { key: readability-identifier-naming.EnumConstantCase,           value: CamelCase }
+  - { key: readability-identifier-naming.TypeAliasCase,              value: CamelCase }
+  - { key: readability-identifier-naming.TemplateParameterCase,      value: CamelCase }
+  - { key: readability-identifier-naming.FunctionCase,               value: camelBack }
+  - { key: readability-identifier-naming.MethodCase,                 value: camelBack }
+  - { key: readability-identifier-naming.VariableCase,               value: camelBack }
+  - { key: readability-identifier-naming.ParameterCase,              value: camelBack }
+  - { key: readability-identifier-naming.ClassMemberCase,            value: camelBack }
+  - { key: readability-identifier-naming.PublicMemberCase,           value: camelBack }
+  - { key: readability-identifier-naming.PrivateMemberCase,          value: camelBack }
+  - { key: readability-identifier-naming.PrivateMemberPrefix,        value: m_ }
+  - { key: readability-identifier-naming.ProtectedMemberCase,        value: camelBack }
+  - { key: readability-identifier-naming.ProtectedMemberPrefix,      value: m_ }
+  - { key: readability-identifier-naming.ConstexprVariableCase,      value: CamelCase }
+  - { key: readability-identifier-naming.ConstexprVariablePrefix,    value: k }
+  - { key: readability-identifier-naming.GlobalConstantCase,         value: CamelCase }
+  - { key: readability-identifier-naming.GlobalConstantPrefix,       value: k }
+
+  - { key: readability-function-cognitive-complexity.Threshold,      value: 25 }
+  - { key: readability-implicit-bool-conversion.AllowPointerConditions, value: true }
+  - { key: misc-const-correctness.WarnPointersAsValues,              value: false }
+  - { key: misc-const-correctness.TransformPointersAsValues,         value: false }
