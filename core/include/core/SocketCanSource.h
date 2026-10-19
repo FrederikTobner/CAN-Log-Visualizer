@@ -6,7 +6,7 @@ class QSocketNotifier;
 
 /// Receives classic CAN frames from a Linux SocketCAN interface using a raw
 /// non-blocking socket. Runs on the thread it lives in (event-loop driven).
-class SocketCanSource : public CanSource {
+class SocketCanSource final : public CanSource {
     Q_OBJECT
 
   public:

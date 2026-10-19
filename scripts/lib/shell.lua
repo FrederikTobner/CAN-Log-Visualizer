@@ -1,9 +1,17 @@
---- Shell execution helpers shared by the JANUS Lua scripts.
+--- Shell execution helpers shared by the project's Lua scripts.
 --
 -- @copyright Copyright (C) 2026 Frederik Tobner
--- @license   GNU Affero General Public License v3.0 or later
+-- @license   GNU General Public License v3.0 or later
 
 local M = {}
+
+--- Quote a string as a single shell word.
+---
+--- @param s string raw string
+--- @return string single-quoted shell word
+function M.quote(s)
+    return "'" .. s:gsub("'", "'\\''") .. "'"
+end
 
 --- Execute a shell command, return (ok, exit_code).
 ---

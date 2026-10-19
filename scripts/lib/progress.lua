@@ -1,7 +1,7 @@
---- In-place progress-line reporting shared by the JANUS Lua scripts.
+--- In-place progress-line reporting shared by the project's Lua scripts.
 --
 -- @copyright Copyright (C) 2026 Frederik Tobner
--- @license   GNU Affero General Public License v3.0 or later
+-- @license   GNU General Public License v3.0 or later
 
 local ansi = require("ansi")
 local time = require("time")
