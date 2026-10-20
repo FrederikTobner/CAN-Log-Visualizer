@@ -1,11 +1,11 @@
 #pragma once
 
 #include "core/CanFrame.h"
-#include "core/Result.h"
 
 #include <QString>
 
 #include <cstdint>
+#include <expected>
 #include <vector>
 
 /// Matches frames of one type (standard or extended) whose identifier equals
@@ -31,4 +31,4 @@ struct CanFilter {
 /// Parses comma-separated terms `ID`, `ID:MASK`, `!ID` and `!ID:MASK` in hex.
 /// An ID of 8 digits is extended, 1-3 digits are standard; the mask defaults
 /// to all bits of that type. Blank text gives an empty filter.
-Result<CanFilter> parseCanFilter(QString const & text);
+std::expected<CanFilter, QString> parseCanFilter(QString const & text);

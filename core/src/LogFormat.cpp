@@ -17,21 +17,21 @@ std::string_view nextToken(std::string_view & rest) {
     return token;
 }
 
-Result<double> parseTimestamp(std::string_view token) {
+std::expected<double, QString> parseTimestamp(std::string_view token) {
     if (!token.starts_with('(') || !token.ends_with(')')) {
-        return Failure{QStringLiteral("timestamp must look like (seconds.microseconds)")};
+        return std::unexpected{QStringLiteral("timestamp must look like (seconds.microseconds)")};
     }
 
     token = token.substr(1, token.size() - 2);
     auto const seconds = parsing::parseDouble(token);
     if (!seconds || !std::isfinite(*seconds)) {
-        return Failure{QStringLiteral("invalid timestamp '%1'").arg(parsing::toQString(token))};
+        return std::unexpected{QStringLiteral("invalid timestamp '%1'").arg(parsing::toQString(token))};
     }
     return *seconds;
 }
 
 /// The part of a frame that follows the `#`: remote flag, DLC and data.
-Result<CanFrame> parseRemotePayload(std::string_view dlcText) {
+std::expected<CanFrame, QString> parseRemotePayload(std::string_view dlcText) {
     CanFrame frame;
     frame.remote = true;
     if (dlcText.empty()) {
@@ -40,32 +40,33 @@ Result<CanFrame> parseRemotePayload(std::string_view dlcText) {
 
     auto const dlc = parsing::parseHex(dlcText);
     if (!dlc || dlcText.size() != 1 || *dlc > frame.data.size()) {
-        return Failure{QStringLiteral("invalid remote frame length '%1'").arg(parsing::toQString(dlcText))};
+        return std::unexpected{QStringLiteral("invalid remote frame length '%1'").arg(parsing::toQString(dlcText))};
     }
     frame.dlc = static_cast<uint8_t>(*dlc);
     return frame;
 }
 
-Result<CanFrame> parseDataPayload(std::string_view hex) {
+std::expected<CanFrame, QString> parseDataPayload(std::string_view hex) {
     CanFrame frame;
     if (hex.size() % 2 != 0 || hex.size() > 2 * frame.data.size()) {
-        return Failure{QStringLiteral("data '%1' must be 0-8 bytes of hex digit pairs").arg(parsing::toQString(hex))};
+        return std::unexpected{
+            QStringLiteral("data '%1' must be 0-8 bytes of hex digit pairs").arg(parsing::toQString(hex))};
     }
 
     frame.dlc = static_cast<uint8_t>(hex.size() / 2);
     for (size_t i = 0; i < frame.dlc; ++i) {
         auto const byte = parsing::parseHex(hex.substr(2 * i, 2));
         if (!byte) {
-            return Failure{QStringLiteral("data '%1' is not hexadecimal").arg(parsing::toQString(hex))};
+            return std::unexpected{QStringLiteral("data '%1' is not hexadecimal").arg(parsing::toQString(hex))};
         }
         frame.data[i] = static_cast<uint8_t>(*byte);
     }
     return frame;
 }
 
-Result<CanFrame> parsePayload(std::string_view payload) {
+std::expected<CanFrame, QString> parsePayload(std::string_view payload) {
     if (payload.starts_with('#')) {
-        return Failure{QStringLiteral("CAN FD frames are not supported")};
+        return std::unexpected{QStringLiteral("CAN FD frames are not supported")};
     }
     if (payload.starts_with('R')) {
         return parseRemotePayload(payload.substr(1));
@@ -87,30 +88,31 @@ bool isBlankOrComment(std::string_view line) {
     return line.empty() || line.starts_with('#');
 }
 
-Result<CanFrame> parseLogLine(std::string_view line) {
+std::expected<CanFrame, QString> parseLogLine(std::string_view line) {
     auto const timestampToken = nextToken(line);
     nextToken(line); // interface name
     auto const frameToken = nextToken(line);
     if (frameToken.empty() || !parsing::trim(line).empty()) {
-        return Failure{QStringLiteral("expected '(timestamp) interface ID#DATA'")};
+        return std::unexpected{QStringLiteral("expected '(timestamp) interface ID#DATA'")};
     }
 
     auto const hash = frameToken.find('#');
     if (hash == std::string_view::npos) {
-        return Failure{QStringLiteral("frame '%1' has no '#' between ID and data").arg(parsing::toQString(frameToken))};
+        return std::unexpected{
+            QStringLiteral("frame '%1' has no '#' between ID and data").arg(parsing::toQString(frameToken))};
     }
 
     auto const timestamp = parseTimestamp(timestampToken);
     if (!timestamp) {
-        return Failure{timestamp.error()};
+        return std::unexpected{timestamp.error()};
     }
     auto const id = parsing::parseId(frameToken.substr(0, hash));
     if (!id) {
-        return Failure{id.error()};
+        return std::unexpected{id.error()};
     }
     auto const payload = parsePayload(frameToken.substr(hash + 1));
     if (!payload) {
-        return Failure{payload.error()};
+        return std::unexpected{payload.error()};
     }
 
     CanFrame frame = *payload;
@@ -126,10 +128,11 @@ QString formatLogLine(CanFrame const & frame, QString const & interfaceName) {
         .arg(interfaceName, formatId(frame), formatPayload(frame));
 }
 
-Result<qsizetype> saveLogFile(QString const & path, std::span<CanFrame const> frames, QString const & interfaceName) {
+std::expected<qsizetype, QString> saveLogFile(QString const & path, std::span<CanFrame const> frames,
+                                              QString const & interfaceName) {
     QSaveFile file(path);
     if (!file.open(QIODevice::WriteOnly)) {
-        return Failure{file.errorString()};
+        return std::unexpected{file.errorString()};
     }
 
     for (CanFrame const & frame : frames) {
@@ -138,7 +141,7 @@ Result<qsizetype> saveLogFile(QString const & path, std::span<CanFrame const> fr
 
     // A failed write earlier makes the commit fail as well.
     if (!file.commit()) {
-        return Failure{file.errorString()};
+        return std::unexpected{file.errorString()};
     }
     return static_cast<qsizetype>(frames.size());
 }

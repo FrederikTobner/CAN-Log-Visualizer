@@ -41,19 +41,19 @@ std::optional<double> parseDouble(std::string_view text) {
     return parseWhole<double>(text);
 }
 
-Result<ParsedId> parseId(std::string_view digits) {
+std::expected<ParsedId, QString> parseId(std::string_view digits) {
     bool const extended = digits.size() == static_cast<size_t>(idDigits(true));
     if (digits.empty() || (!extended && digits.size() > static_cast<size_t>(idDigits(false)))) {
-        return Failure{
+        return std::unexpected{
             QStringLiteral("ID '%1' must have 1-3 (standard) or 8 (extended) hex digits").arg(toQString(digits))};
     }
 
     auto const value = parseHex(digits);
     if (!value) {
-        return Failure{QStringLiteral("ID '%1' is not hexadecimal").arg(toQString(digits))};
+        return std::unexpected{QStringLiteral("ID '%1' is not hexadecimal").arg(toQString(digits))};
     }
     if (*value > maxId(extended)) {
-        return Failure{QStringLiteral("ID '%1' is out of range").arg(toQString(digits))};
+        return std::unexpected{QStringLiteral("ID '%1' is out of range").arg(toQString(digits))};
     }
     return ParsedId{.value = *value, .extended = extended};
 }

@@ -1,10 +1,10 @@
 #pragma once
 
 #include "core/CanFrame.h"
-#include "core/Result.h"
 
 #include <QString>
 
+#include <expected>
 #include <span>
 #include <string_view>
 
@@ -17,11 +17,12 @@ bool isBlankOrComment(std::string_view line);
 
 /// Parses one log line. CAN FD, error frames and malformed lines give an error
 /// text describing the problem.
-Result<CanFrame> parseLogLine(std::string_view line);
+std::expected<CanFrame, QString> parseLogLine(std::string_view line);
 
 /// Formats a frame as a log line without the trailing newline.
 QString formatLogLine(CanFrame const & frame, QString const & interfaceName);
 
 /// Writes the frames to `path` atomically: a failure leaves no partial file.
 /// Returns the number of frames written.
-Result<qsizetype> saveLogFile(QString const & path, std::span<CanFrame const> frames, QString const & interfaceName);
+std::expected<qsizetype, QString> saveLogFile(QString const & path, std::span<CanFrame const> frames,
+                                              QString const & interfaceName);

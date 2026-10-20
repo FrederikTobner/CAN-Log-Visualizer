@@ -8,11 +8,11 @@
 
 namespace {
 
-Result<IdRule> parseRule(std::string_view term) {
+std::expected<IdRule, QString> parseRule(std::string_view term) {
     auto const colon = term.find(':');
     auto const id = parsing::parseId(parsing::trim(term.substr(0, colon)));
     if (!id) {
-        return Failure{id.error()};
+        return std::unexpected{id.error()};
     }
 
     IdRule rule{.id = id->value, .mask = maxId(id->extended), .extended = id->extended};
@@ -20,7 +20,7 @@ Result<IdRule> parseRule(std::string_view term) {
         auto const maskText = parsing::trim(term.substr(colon + 1));
         auto const mask = parsing::parseHex(maskText);
         if (!mask || *mask > maxId(rule.extended)) {
-            return Failure{
+            return std::unexpected{
                 QStringLiteral("mask '%1' is not a hex value within the ID range").arg(parsing::toQString(maskText))};
         }
         rule.mask = *mask;
@@ -39,7 +39,7 @@ bool CanFilter::matches(CanFrame const & frame) const {
     return !std::ranges::any_of(exclude, hits) && (include.empty() || std::ranges::any_of(include, hits));
 }
 
-Result<CanFilter> parseCanFilter(QString const & text) {
+std::expected<CanFilter, QString> parseCanFilter(QString const & text) {
     std::string const utf8 = text.toStdString();
     CanFilter filter;
 
@@ -52,7 +52,7 @@ Result<CanFilter> parseCanFilter(QString const & text) {
         bool const isExclude = term.starts_with('!');
         auto const rule = parseRule(isExclude ? term.substr(1) : term);
         if (!rule) {
-            return Failure{QStringLiteral("'%1': %2").arg(parsing::toQString(term), rule.error())};
+            return std::unexpected{QStringLiteral("'%1': %2").arg(parsing::toQString(term), rule.error())};
         }
         (isExclude ? filter.exclude : filter.include).push_back(*rule);
     }

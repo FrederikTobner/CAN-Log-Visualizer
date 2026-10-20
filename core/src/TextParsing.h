@@ -1,8 +1,9 @@
 #pragma once
 
-#include "core/Result.h"
+#include <QString>
 
 #include <cstdint>
+#include <expected>
 #include <optional>
 #include <string_view>
 
@@ -25,7 +26,7 @@ std::optional<uint32_t> parseHex(std::string_view digits);
 std::optional<double> parseDouble(std::string_view text);
 
 /// Parses 1-3 (standard) or exactly 8 (extended) hex digits within the type's range.
-Result<ParsedId> parseId(std::string_view digits);
+std::expected<ParsedId, QString> parseId(std::string_view digits);
 
 QString toQString(std::string_view text);
 
