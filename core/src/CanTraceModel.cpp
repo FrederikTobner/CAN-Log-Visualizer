@@ -2,8 +2,20 @@
 
 #include <algorithm>
 
+namespace {
+
+qsizetype clampedMaxRows(qsizetype maxRows) {
+    return std::max<qsizetype>(maxRows, 1);
+}
+
+} // namespace
+
 CanTraceModel::CanTraceModel(qsizetype maxRows, QObject * parent)
-    : QAbstractTableModel(parent), m_maxRows(std::max<qsizetype>(maxRows, 1)) {
+    : QAbstractTableModel(parent), m_maxRows(clampedMaxRows(maxRows)) {
+}
+
+CanFrame const & CanTraceModel::frameAt(int row) const {
+    return m_frames[static_cast<size_t>(row)];
 }
 
 int CanTraceModel::rowCount(QModelIndex const & parent) const {
@@ -77,10 +89,7 @@ void CanTraceModel::appendFrames(QList<CanFrame> const & frames) {
     qsizetype const overflow = std::max<qsizetype>(current + incoming - m_maxRows, 0);
 
     if (overflow > 0) {
-        beginRemoveRows({}, 0, static_cast<int>(overflow) - 1);
-        m_frames.erase(m_frames.begin(), m_frames.begin() + overflow);
-        m_firstNumber += static_cast<qulonglong>(overflow);
-        endRemoveRows();
+        removeOldest(overflow);
     }
     m_firstNumber += static_cast<qulonglong>(skipped);
 
@@ -88,6 +97,22 @@ void CanTraceModel::appendFrames(QList<CanFrame> const & frames) {
     beginInsertRows({}, first, first + static_cast<int>(incoming) - 1);
     m_frames.insert(m_frames.end(), frames.begin() + skipped, frames.end());
     endInsertRows();
+}
+
+void CanTraceModel::setMaxRows(qsizetype maxRows) {
+    m_maxRows = clampedMaxRows(maxRows);
+
+    auto const overflow = static_cast<qsizetype>(m_frames.size()) - m_maxRows;
+    if (overflow > 0) {
+        removeOldest(overflow);
+    }
+}
+
+void CanTraceModel::removeOldest(qsizetype count) {
+    beginRemoveRows({}, 0, static_cast<int>(count) - 1);
+    m_frames.erase(m_frames.begin(), m_frames.begin() + count);
+    m_firstNumber += static_cast<qulonglong>(count);
+    endRemoveRows();
 }
 
 void CanTraceModel::clear() {

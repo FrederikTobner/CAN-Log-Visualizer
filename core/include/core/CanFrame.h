@@ -19,6 +19,16 @@ struct CanFrame {
     double timestamp = 0.0;
 };
 
+/// Number of hex digits used to write an identifier of the given type.
+constexpr int idDigits(bool extended) {
+    return extended ? 8 : 3;
+}
+
+/// Largest identifier of the given type (11 or 29 bits).
+constexpr uint32_t maxId(bool extended) {
+    return extended ? 0x1FFFFFFF : 0x7FF;
+}
+
 /// Uppercase hex identifier, 3 digits (standard) or 8 digits (extended).
 QString formatId(CanFrame const & frame);
 

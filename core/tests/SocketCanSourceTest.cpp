@@ -4,6 +4,7 @@
 
 #include <cerrno>
 #include <cstring>
+#include <memory>
 
 #include <net/if.h>
 #include <sys/socket.h>
@@ -45,6 +46,7 @@ class SocketCanSourceTest : public QObject {
     void startFailsForMissingInterface();
     void stopWithoutStartIsNoOp();
     void receivesFramesFromVcan();
+    void destroyingRunningSourceEmitsNothing();
 };
 
 void SocketCanSourceTest::startFailsForMissingInterface() {
@@ -93,6 +95,21 @@ void SocketCanSourceTest::receivesFramesFromVcan() {
 
     source.stop();
     QVERIFY(!source.isRunning());
+}
+
+// Regression: a parent deleting its children must not make them signal into
+// receivers that are already partly destroyed.
+void SocketCanSourceTest::destroyingRunningSourceEmitsNothing() {
+    auto source = std::make_unique<SocketCanSource>("vcan0");
+    QSignalSpy running(source.get(), &CanSource::runningChanged);
+    if (!source->start()) {
+        QSKIP("vcan0 is not available (see docs/usage.md)");
+    }
+    QCOMPARE(running.count(), 1);
+
+    source.reset();
+
+    QCOMPARE(running.count(), 1);
 }
 
 QTEST_GUILESS_MAIN(SocketCanSourceTest)

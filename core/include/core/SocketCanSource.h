@@ -22,6 +22,7 @@ class SocketCanSource final : public CanSource {
 
   private:
     void drainSocket();
+    void releaseSocket();
     void fail(QString const & message);
 
     QString m_interfaceName;

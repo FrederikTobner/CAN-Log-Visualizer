@@ -20,9 +20,9 @@ local toolchain = require("toolchain")
 
 local ROOT = project.root()
 
--- The CI pipeline pins clang-format-18. Other versions can format differently,
+-- The CI pipeline pins clang-format-23. Other versions can format differently,
 -- giving a false pass locally while CI still fails.
-local TOOL = toolchain.pinned_tool("clang-format", "18", { "17", "16" })
+local TOOL = toolchain.pinned_tool("clang-format", "23", { "22", "21" })
 
 local USAGE = [[
 Usage: lua scripts/format.lua [OPTIONS]
@@ -47,8 +47,8 @@ local opts = cli.parse(USAGE, {
 }, {})
 
 local raw = shell.capture(string.format(
-    "find %s/app %s/core -type f \\( -name '*.[ch]' -o -name '*.[ch]pp' \\) | sort",
-    shell.quote(ROOT), shell.quote(ROOT)))
+    "find %s/app %s/core %s/gui -type f \\( -name '*.[ch]' -o -name '*.[ch]pp' \\) | sort",
+    shell.quote(ROOT), shell.quote(ROOT), shell.quote(ROOT)))
 local files = {}
 for path in raw:gmatch("[^\n]+") do files[#files + 1] = path end
 files = project.select(files, opts.filter)

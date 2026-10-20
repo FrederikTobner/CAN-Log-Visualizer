@@ -36,6 +36,9 @@ class CanTraceModelTest : public QObject {
     void batchLargerThanCapKeepsNewest();
     void timeIsRelativeToFirstFrame();
     void displayStrings();
+    void frameAtReturnsRowFrame();
+    void loweringMaxRowsDropsOldest();
+    void raisingMaxRowsKeepsRows();
 };
 
 void CanTraceModelTest::modelContract() {
@@ -126,6 +129,39 @@ void CanTraceModelTest::displayStrings() {
     QCOMPARE(cell(model, 1, CanTraceModel::Type), QString("EXT RTR"));
     QCOMPARE(cell(model, 1, CanTraceModel::Dlc), QString("3"));
     QCOMPARE(cell(model, 1, CanTraceModel::Data), QString(""));
+}
+
+void CanTraceModelTest::frameAtReturnsRowFrame() {
+    CanTraceModel model;
+    model.appendFrames(makeFrames(7, 3));
+
+    QCOMPARE(model.frameAt(0).id, 7u);
+    QCOMPARE(model.frameAt(2).id, 9u);
+}
+
+void CanTraceModelTest::loweringMaxRowsDropsOldest() {
+    CanTraceModel model;
+    model.appendFrames(makeFrames(1, 5));
+    QSignalSpy removed(&model, &QAbstractItemModel::rowsRemoved);
+
+    model.setMaxRows(2);
+
+    QCOMPARE(removed.count(), 1);
+    QCOMPARE(model.rowCount(), 2);
+    QCOMPARE(cell(model, 0, CanTraceModel::Number), QString("4"));
+    QCOMPARE(cell(model, 1, CanTraceModel::Number), QString("5"));
+}
+
+void CanTraceModelTest::raisingMaxRowsKeepsRows() {
+    CanTraceModel model(2);
+    model.appendFrames(makeFrames(1, 2));
+    QSignalSpy removed(&model, &QAbstractItemModel::rowsRemoved);
+
+    model.setMaxRows(10);
+    model.appendFrames(makeFrames(3, 4));
+
+    QCOMPARE(removed.count(), 0);
+    QCOMPARE(model.rowCount(), 6);
 }
 
 QTEST_GUILESS_MAIN(CanTraceModelTest)
