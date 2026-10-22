@@ -8,8 +8,8 @@
 #include <deque>
 #include <optional>
 
-/// @brief Table model showing received frames. 
-/// @details The oldest frame is displayed first. Keeps at most `maxRows` frames. 
+/// @brief Table model showing received frames.
+/// @details The oldest frame is displayed first. Keeps at most `maxRows` frames.
 /// Older ones are dropped but keep their frame numbers.
 class CanTraceModel : public QAbstractTableModel {
     Q_OBJECT

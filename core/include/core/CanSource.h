@@ -13,8 +13,9 @@ class CanSource : public QObject {
   public:
     using QObject::QObject;
 
-    /// @brief Starts delivering frames. 
-    /// @return Returns false on failure, in which case `errorOccurred` has been emitted with the reason. True otherwise.
+    /// @brief Starts delivering frames.
+    /// @return Returns false on failure, in which case `errorOccurred` has been emitted with the reason. True
+    /// otherwise.
     virtual bool start() = 0;
 
     /// @brief Stops delivering frames.

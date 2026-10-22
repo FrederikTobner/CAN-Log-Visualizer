@@ -18,8 +18,8 @@ class QPushButton;
 class QTableView;
 class SocketCanSource;
 
-/// @brief Main window of the CAN Log Visualizer application. 
-/// @details Provides the user interface for viewing and interacting with CAN traces, 
+/// @brief Main window of the CAN Log Visualizer application.
+/// @details Provides the user interface for viewing and interacting with CAN traces,
 /// either live from a CAN interface or from log files.
 class MainWindow : public QMainWindow {
     Q_OBJECT

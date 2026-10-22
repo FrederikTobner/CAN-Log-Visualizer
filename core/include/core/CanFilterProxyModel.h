@@ -7,7 +7,7 @@
 
 #include <vector>
 
-/// @brief Shows only the frames of a `CanTraceModel` that pass a `CanFilter`. 
+/// @brief Shows only the frames of a `CanTraceModel` that pass a `CanFilter`.
 /// @details The source model keeps every frame, so removing the filter shows them again.
 class CanFilterProxyModel final : public QSortFilterProxyModel {
     Q_OBJECT

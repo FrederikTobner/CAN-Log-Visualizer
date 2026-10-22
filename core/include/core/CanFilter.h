@@ -18,9 +18,9 @@ struct IdRule {
     bool matches(CanFrame const & frame) const;
 };
 
-/// @brief Filter deciding which frames are shown. 
-/// @details A frame passes if it matches no exclude rule and, 
-/// when any include rules exist, at least one include rule is matched. 
+/// @brief Filter deciding which frames are shown.
+/// @details A frame passes if it matches no exclude rule and,
+/// when any include rules exist, at least one include rule is matched.
 /// An empty filter passes everything.
 struct CanFilter {
     std::vector<IdRule> include;

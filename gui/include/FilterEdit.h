@@ -4,8 +4,9 @@
 
 #include <QLineEdit>
 
-/// @brief Line edit for CAN ID filters. 
-/// @details Applies the text when editing finishes (onEnter or focus loss) and marks invalid input instead of applying it.
+/// @brief Line edit for CAN ID filters.
+/// @details Applies the text when editing finishes (onEnter or focus loss) and marks invalid input instead of applying
+/// it.
 class FilterEdit final : public QLineEdit {
     Q_OBJECT
 
