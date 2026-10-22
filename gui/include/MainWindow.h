@@ -18,14 +18,22 @@ class QPushButton;
 class QTableView;
 class SocketCanSource;
 
+/// @brief Main window of the CAN Log Visualizer application. 
+/// @details Provides the user interface for viewing and interacting with CAN traces, 
+/// either live from a CAN interface or from log files.
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
   public:
+    /// @brief Constructs the main window.
+    /// @param interfaceName The name of the CAN interface to connect to initially.
+    /// @param parent The parent widget, if any.
     explicit MainWindow(QString const & interfaceName, QWidget * parent = nullptr);
+    /// @brief Destructs the main window.
     ~MainWindow() override;
 
-    /// Replaces the trace with the contents of a `candump` log file.
+    /// @brief Replaces the trace with the contents of a `candump` log file.
+    /// @param path The path to the log file.
     void openLogFile(QString const & path);
 
   private:
