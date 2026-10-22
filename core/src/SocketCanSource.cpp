@@ -40,7 +40,8 @@ SocketCanSource::SocketCanSource(QString interfaceName, QObject * parent)
 }
 
 SocketCanSource::~SocketCanSource() {
-    stop();
+    // No runningChanged here: when a parent deletes us, receivers may already be partly destroyed.
+    releaseSocket();
 }
 
 QString SocketCanSource::interfaceName() const {
@@ -105,13 +106,20 @@ void SocketCanSource::stop() {
         return;
     }
 
+    releaseSocket();
+    emit runningChanged(false);
+}
+
+void SocketCanSource::releaseSocket() {
+    if (!isRunning()) {
+        return;
+    }
+
     m_notifier->setEnabled(false);
     m_notifier->deleteLater();
     m_notifier = nullptr;
     ::close(m_fd);
     m_fd = -1;
-
-    emit runningChanged(false);
 }
 
 void SocketCanSource::fail(QString const & message) {

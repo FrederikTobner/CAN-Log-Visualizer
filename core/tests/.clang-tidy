@@ -1,7 +1,5 @@
 ---
-# Qt Test needs non-static private slots in classes that live in the test
-# translation unit, `_data` functions that follow QTest naming, and QFETCH
-# locals that cannot be const.
+# Qt Test needs non-static private slots in classes that live in the test translation unit, 
 InheritParentConfig: true
 Checks: >
   -misc-const-correctness,

@@ -1,10 +1,6 @@
-file(GLOB_RECURSE APP_SOURCES CONFIGURE_DEPENDS
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
-)
-
-qt_add_executable(CanLogVisualizer ${APP_SOURCES})
-
-target_include_directories(CanLogVisualizer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(CanLogVisualizer PRIVATE CanLogCore Qt6::Widgets)
+# The GUI is a library so that tests can link it; main.cpp only wires it up.
+qt_add_executable(CanLogVisualizer src/main.cpp)
+target_include_directories(CanLogVisualizer PUBLIC ${PROJECT_SOURCE_DIR}/gui/include)
+target_link_libraries(CanLogVisualizer PRIVATE CanLogGui)
 target_compile_options(CanLogVisualizer PRIVATE -Wall -Wextra -Wpedantic)
+

@@ -1,7 +1,7 @@
 #!/usr/bin/env lua
 --- clang-tidy runner for the CAN Log Visualizer.
 --
--- Runs clang-tidy on all app/ and core/ translation units listed in a build
+-- Runs clang-tidy on all app/ core/ and gui/ translation units listed in a build
 -- directory's compile_commands.json, mirroring the CI clang-tidy job.
 --
 -- Usage: lua scripts/tidy.lua [OPTIONS]
@@ -22,9 +22,9 @@ local toolchain = require("toolchain")
 
 local ROOT = project.root()
 
--- The CI pipeline pins clang-tidy-18. Other versions ship different checks,
+-- The CI pipeline pins clang-tidy-23. Other versions ship different checks,
 -- silencing or adding diagnostics relative to CI.
-local TOOL = toolchain.pinned_tool("clang-tidy", "18", { "17", "16" })
+local TOOL = toolchain.pinned_tool("clang-tidy", "23", { "22", "21" })
 
 local USAGE = [[
 Usage: lua scripts/tidy.lua [OPTIONS]
@@ -68,7 +68,7 @@ db:close()
 local files, seen = {}, {}
 for file in content:gmatch('"file"%s*:%s*"([^"]+)"') do
     local p = project.short_path(file)
-    if (p:match("^app/") or p:match("^core/")) and not seen[file] then
+    if (p:match("^app/") or p:match("^core/") or p:match("^gui/")) and not seen[file] then
         seen[file] = true
         files[#files + 1] = file
     end

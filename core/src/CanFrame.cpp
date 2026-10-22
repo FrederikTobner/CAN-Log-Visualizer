@@ -3,7 +3,7 @@
 #include <algorithm>
 
 QString formatId(CanFrame const & frame) {
-    int const width = frame.extended ? 8 : 3;
+    int const width = idDigits(frame.extended);
     return QString::number(frame.id, 16).toUpper().rightJustified(width, '0');
 }
 
