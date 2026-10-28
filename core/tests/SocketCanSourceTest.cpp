@@ -1,4 +1,4 @@
-#include "core/SocketCanSource.h"
+#include "core/SocketCanSource.hpp"
 
 #include <QtTest>
 

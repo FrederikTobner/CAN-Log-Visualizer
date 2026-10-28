@@ -7,7 +7,7 @@
 #---------------------------------------------------------------------------
 PROJECT_NAME           = "CAN Log Visualizer"
 PROJECT_BRIEF          = "A small CAN log visualizer, written in C++ using Qt 6 Widgets and CMake."
-PROJECT_NUMBER         =
+PROJECT_NUMBER         = 0.1.0
 OUTPUT_DIRECTORY       = doxygen-out
 CREATE_SUBDIRS         = NO
 

@@ -1,7 +1,7 @@
 # Headers are listed so that AUTOMOC finds the Q_OBJECT classes.
 file(GLOB_RECURSE GUI_SOURCES CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
 )
 
 add_library(CanLogGui STATIC ${GUI_SOURCES})

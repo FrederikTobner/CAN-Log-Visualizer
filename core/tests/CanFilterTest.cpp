@@ -1,6 +1,6 @@
-#include "core/CanFilter.h"
+#include "core/CanFilter.hpp"
 
-#include "TestFrames.h"
+#include "TestFrames.hpp"
 
 #include <QtTest>
 

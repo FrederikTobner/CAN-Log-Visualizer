@@ -1,6 +1,6 @@
-#include "core/CanFilterProxyModel.h"
+#include "core/CanFilterProxyModel.hpp"
 
-#include "TestFrames.h"
+#include "TestFrames.hpp"
 
 #include <QAbstractItemModelTester>
 #include <QtTest>

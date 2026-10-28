@@ -1,5 +1,5 @@
-#include "core/CanFrame.h"
-#include "core/KernelFrame.h"
+#include "core/CanFrame.hpp"
+#include "core/KernelFrame.hpp"
 
 #include <QtTest>
 

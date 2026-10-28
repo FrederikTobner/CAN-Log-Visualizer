@@ -1,4 +1,4 @@
-#include "core/LogFileSource.h"
+#include "core/LogFileSource.hpp"
 
 #include <QSignalSpy>
 #include <QTemporaryFile>

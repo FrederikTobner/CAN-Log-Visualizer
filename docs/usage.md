@@ -64,3 +64,13 @@ canplayer -I run.log          # replay a log onto vcan0
 - Up to 1,000,000 frames are kept when loading; for larger files only the last ones are shown, and the status bar says so.
 - Lines that cannot be read (CAN FD frames, error frames, garbage) are skipped. The status bar reports how many and why the first one failed.
 - **File > Save Log As...** (Ctrl+Shift+S) saves the frames currently shown, so an active filter applies. The interface name in the file is taken from the interface field.
+
+## Statistics
+
+The Statistics dock (View menu) shows the bus-wide frame count, frame rate and bus load, and one row per CAN ID with its count, rate and cycle time (last, min, mean, max in ms) and last payload. Click a column header to sort. Standard and extended IDs with the same value are separate rows.
+
+- All numbers come from the frame timestamps, so a loaded log file gives the same result as the live traffic it was recorded from. Rates cover the last second; live, they fall to zero when the bus is quiet.
+- The statistics always cover all frames, whatever the trace filter shows. They are reset together with the trace (Clear, opening a log file).
+- A frame does not carry the bitrate, so set it in the dock (default 500000 bit/s). The bus load assumes worst-case bit stuffing and is therefore shown as an upper bound ("\u2264"). On `vcan0` it tells what the traffic would cost on a real bus of that speed.
+
+To try it, `cangen vcan0 -g 10 -I 123` should show about 100 Hz and a mean cycle time of about 10 ms for ID `123`.
