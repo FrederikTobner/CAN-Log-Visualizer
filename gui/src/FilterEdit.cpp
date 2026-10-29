@@ -18,9 +18,15 @@
 
 namespace {
 
-constexpr auto kSyntaxHelp = "Comma-separated hex IDs: ID, ID:MASK, !ID to exclude.\n"
-                             "3 digits (or fewer) are standard IDs, 8 digits are extended IDs.\n"
-                             "Example: 123, 700:700, !7FF";
+constexpr auto kSyntaxHelp =
+    "<p>Comma-separated hex IDs. Press Enter to apply, clear the field to show everything.</p>"
+    "<table>"
+    "<tr><td><b>123</b></td><td>&nbsp;standard frame 123</td></tr>"
+    "<tr><td><b>700:700</b></td><td>&nbsp;IDs where <i>ID &amp; 700 == 700</i> (700..7FF)</td></tr>"
+    "<tr><td><b>12345678</b></td><td>&nbsp;extended frame (8 digits)</td></tr>"
+    "<tr><td><b>123, 456</b></td><td>&nbsp;any of the listed IDs</td></tr>"
+    "<tr><td><b>!7FF</b></td><td>&nbsp;everything except 7FF (always wins)</td></tr>"
+    "</table>";
 
 constexpr auto kInvalidStyle = "QLineEdit { border: 1px solid #d33; }";
 

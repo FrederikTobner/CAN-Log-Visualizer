@@ -17,6 +17,7 @@
 #include "MainWindow.hpp"
 
 #include "FilterEdit.hpp"
+#include "HelpDialog.hpp"
 #include "StatisticsPanel.hpp"
 
 #include "core/CanFilterProxyModel.hpp"
@@ -26,6 +27,7 @@
 #include "core/SocketCanSource.hpp"
 
 #include <QAction>
+#include <QApplication>
 #include <QCheckBox>
 #include <QDateTime>
 #include <QDockWidget>
@@ -71,6 +73,9 @@ MainWindow::MainWindow(QString const & interfaceName, QWidget * parent)
     m_filterEdit->setMaximumWidth(260);
     m_autoScroll->setChecked(true);
     auto * clearButton = new QPushButton("Clear", this);
+    clearButton->setToolTip("Remove all frames and reset the statistics");
+    m_autoScroll->setToolTip("Keep the newest frame in view");
+    m_interfaceEdit->setToolTip("SocketCAN interface, e.g. vcan0 or can0");
 
     auto * toolBar = addToolBar("Main");
     toolBar->setMovable(false);
@@ -86,6 +91,10 @@ MainWindow::MainWindow(QString const & interfaceName, QWidget * parent)
     fileMenu->addAction("&Save Log As...", QKeySequence::SaveAs, this, &MainWindow::saveLog);
     fileMenu->addSeparator();
     fileMenu->addAction("&Quit", QKeySequence::Quit, this, &QWidget::close);
+
+    auto * helpMenu = menuBar()->addMenu("&Help");
+    helpMenu->addAction("&Quick Reference", QKeySequence::HelpContents, this, [this] { showHelpDialog(this); });
+    helpMenu->addAction("About &Qt", qApp, &QApplication::aboutQt);
 
     m_view->setModel(m_proxy);
     m_view->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));

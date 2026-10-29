@@ -24,13 +24,8 @@ You can run `lua5.4 scripts/format.lua` and `lua5.4 scripts/tidy.lua` (see [buil
 | Constants                                  | `k` prefix   | `kRefreshIntervalMs`            |
 | Namespaces                                 | `lower_case` | `parsing`                       |
 
-## Language
-
-- C++23. Prefer standard types (`std::expected`, `std::optional`, `std::span`, ranges) over home-made ones.
-- East const and middle allignment for pointers (type * var_name)
-
 ## Tests
 
-- Qt Test only, one executable per `*Test.cpp`, registered through the `add_qt_tests` function defined in (`cmake/Add_QT_Test.cmake`) and run by CTest.
+- Qt Test only, one executable per `*Test.cpp`, registered through the `add_qt_tests` function defined in (`cmake/Add_QT_Tests.cmake`) and run by CTest.
 - Name test slots after the behaviour (`rateDecaysWhenAdvanced`), use `_data()` functions for tables, and `QAbstractItemModelTester` for every model.
-- Shared frame builders live in `core/tests/TestFrames.hpp`. Tests that need `vcan0` fail when it is missing; see [usage](usage.md).
+- Shared frame builders live in `core/tests/TestFrames.hpp`. Tests that need `vcan0` fail when it is missing; see [manual testing](manual-testing.md).

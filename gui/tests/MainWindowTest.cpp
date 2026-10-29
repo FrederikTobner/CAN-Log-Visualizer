@@ -38,7 +38,7 @@ void MainWindowTest::destroyingConnectedWindowIsSafe() {
 
     connectButton->click();
     if (connectButton->text() != "Disconnect") {
-        QFAIL("vcan0 is not available (see docs/usage.md)");
+        QFAIL("vcan0 is not available (see docs/manual-testing.md)");
     }
 
     QPointer<MainWindow> const guard(window.get());

@@ -70,6 +70,11 @@ StatisticsPanel::StatisticsPanel(CanStatisticsModel * model, QWidget * parent)
     view->verticalHeader()->setVisible(false);
     view->horizontalHeader()->setStretchLastSection(true);
 
+    m_summary->setToolTip("Rate: frames per second over the last second.\n"
+                          "Bus load: upper bound assuming worst-case bit stuffing at the selected bitrate.");
+    m_bitrate->setToolTip("Nominal bus bitrate used to estimate the bus load");
+    view->setToolTip("Cycle: time between consecutive frames of one ID. Click a header to sort.");
+
     auto * header = new QHBoxLayout;
     header->addWidget(m_summary, 1);
     header->addWidget(new QLabel("Bitrate [bit/s]:", this));
