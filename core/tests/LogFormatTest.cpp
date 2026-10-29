@@ -1,6 +1,6 @@
-#include "core/LogFormat.h"
+#include "core/LogFormat.hpp"
 
-#include "TestFrames.h"
+#include "TestFrames.hpp"
 
 #include <QSaveFile>
 #include <QTemporaryDir>

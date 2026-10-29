@@ -1,7 +1,26 @@
+/*****************************************************************************
+ * Copyright (C) 2026 by Frederik Tobner                                     *
+ *                                                                           *
+ * This file is part of the CAN Log Visualizer.                              *
+ *                                                                           *
+ * Permission to use, copy, modify, and distribute this software and its     *
+ * documentation under the terms of the GNU Affero General Public License is *
+ * hereby granted.                                                           *
+ * No representations are made about the suitability of this software for    *
+ * any purpose.                                                              *
+ * It is provided "as is" without express or implied warranty.               *
+ * See the <https://www.gnu.org/licenses/gpl-3.0.html>                       *
+ * GNU General Public License version 3 or later.                            *
+ * License for more details.                                                 *
+ ****************************************************************************/
+
+/// @file MainWindow.hpp
+/// @brief Declares the `MainWindow` class for the main window of the CAN Log Visualizer GUI.
+
 #pragma once
 
-#include "core/CanFrame.h"
-#include "core/LogFileSource.h"
+#include "core/CanFrame.hpp"
+#include "core/LogFileSource.hpp"
 
 #include <QList>
 #include <QMainWindow>
@@ -9,6 +28,7 @@
 struct CanFilter;
 class CanFilterProxyModel;
 class CanSource;
+class CanStatisticsModel;
 class CanTraceModel;
 class FilterEdit;
 class QCheckBox;
@@ -17,6 +37,7 @@ class QLineEdit;
 class QPushButton;
 class QTableView;
 class SocketCanSource;
+class StatisticsPanel;
 
 /// @brief Main window of the CAN Log Visualizer application.
 /// @details Provides the user interface for viewing and interacting with CAN traces,
@@ -55,6 +76,8 @@ class MainWindow : public QMainWindow {
 
     CanTraceModel * m_model;
     CanFilterProxyModel * m_proxy;
+    CanStatisticsModel * m_statistics;
+    StatisticsPanel * m_statisticsPanel;
     SocketCanSource * m_source;
     /// Set while the trace shows a log file (loading or loaded).
     LogFileSource * m_fileSource = nullptr;

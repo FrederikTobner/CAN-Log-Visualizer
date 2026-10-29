@@ -1,4 +1,4 @@
-#include "core/CanTraceModel.h"
+#include "core/CanTraceModel.hpp"
 
 #include <QAbstractItemModelTester>
 #include <QtTest>

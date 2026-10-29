@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/CanFrame.h"
+#include "core/CanFrame.hpp"
 
 #include <QList>
 

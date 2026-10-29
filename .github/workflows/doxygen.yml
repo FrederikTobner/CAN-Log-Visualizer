@@ -20,8 +20,9 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Runs on pull requests too, so broken documentation is caught before merging.
   generate-docs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v4
 
@@ -31,19 +32,16 @@ jobs:
       - name: Generate API docs
         run: doxygen Doxyfile
 
-      - name: Upload HTML artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: doxygen-html
           path: doxygen-out/html
-          retention-days: 30
 
-  publish:
+  deploy:
     if: github.event_name == 'push'
     needs: generate-docs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
-      contents: read
       pages: write
       id-token: write
     concurrency:
@@ -53,22 +51,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Doxygen and Graphviz
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends doxygen graphviz
-
-      - name: Generate API docs
-        run: doxygen Doxyfile
-
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: doxygen-out/html
-
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

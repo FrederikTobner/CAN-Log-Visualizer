@@ -1,15 +1,36 @@
-#include "MainWindow.h"
+/*****************************************************************************
+ * Copyright (C) 2026 by Frederik Tobner                                     *
+ *                                                                           *
+ * This file is part of the CAN Log Visualizer.                              *
+ *                                                                           *
+ * Permission to use, copy, modify, and distribute this software and its     *
+ * documentation under the terms of the GNU Affero General Public License is *
+ * hereby granted.                                                           *
+ * No representations are made about the suitability of this software for    *
+ * any purpose.                                                              *
+ * It is provided "as is" without express or implied warranty.               *
+ * See the <https://www.gnu.org/licenses/gpl-3.0.html>                       *
+ * GNU General Public License version 3 or later.                            *
+ * License for more details.                                                 *
+ ****************************************************************************/
 
-#include "FilterEdit.h"
+#include "MainWindow.hpp"
 
-#include "core/CanFilterProxyModel.h"
-#include "core/CanTraceModel.h"
-#include "core/LogFormat.h"
-#include "core/SocketCanSource.h"
+#include "FilterEdit.hpp"
+#include "HelpDialog.hpp"
+#include "StatisticsPanel.hpp"
+
+#include "core/CanFilterProxyModel.hpp"
+#include "core/CanStatisticsModel.hpp"
+#include "core/CanTraceModel.hpp"
+#include "core/LogFormat.hpp"
+#include "core/SocketCanSource.hpp"
 
 #include <QAction>
+#include <QApplication>
 #include <QCheckBox>
 #include <QDateTime>
+#include <QDockWidget>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFontDatabase>
@@ -40,7 +61,8 @@ QString defaultLogName() {
 
 MainWindow::MainWindow(QString const & interfaceName, QWidget * parent)
     : QMainWindow(parent), m_model(new CanTraceModel(kLiveMaxRows, this)),
-      m_proxy(new CanFilterProxyModel(m_model, this)), m_source(new SocketCanSource(interfaceName, this)),
+      m_proxy(new CanFilterProxyModel(m_model, this)), m_statistics(new CanStatisticsModel(this)),
+      m_statisticsPanel(new StatisticsPanel(m_statistics, this)), m_source(new SocketCanSource(interfaceName, this)),
       m_view(new QTableView(this)), m_interfaceEdit(new QLineEdit(interfaceName, this)),
       m_filterEdit(new FilterEdit(this)), m_connectButton(new QPushButton("Connect", this)),
       m_autoScroll(new QCheckBox("Auto-scroll", this)), m_countLabel(new QLabel(this)) {
@@ -51,6 +73,9 @@ MainWindow::MainWindow(QString const & interfaceName, QWidget * parent)
     m_filterEdit->setMaximumWidth(260);
     m_autoScroll->setChecked(true);
     auto * clearButton = new QPushButton("Clear", this);
+    clearButton->setToolTip("Remove all frames and reset the statistics");
+    m_autoScroll->setToolTip("Keep the newest frame in view");
+    m_interfaceEdit->setToolTip("SocketCAN interface, e.g. vcan0 or can0");
 
     auto * toolBar = addToolBar("Main");
     toolBar->setMovable(false);
@@ -67,6 +92,10 @@ MainWindow::MainWindow(QString const & interfaceName, QWidget * parent)
     fileMenu->addSeparator();
     fileMenu->addAction("&Quit", QKeySequence::Quit, this, &QWidget::close);
 
+    auto * helpMenu = menuBar()->addMenu("&Help");
+    helpMenu->addAction("&Quick Reference", QKeySequence::HelpContents, this, [this] { showHelpDialog(this); });
+    helpMenu->addAction("About &Qt", qApp, &QApplication::aboutQt);
+
     m_view->setModel(m_proxy);
     m_view->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
     m_view->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -79,6 +108,11 @@ MainWindow::MainWindow(QString const & interfaceName, QWidget * parent)
     m_view->setColumnWidth(CanTraceModel::Type, 90);
     m_view->setColumnWidth(CanTraceModel::Dlc, 50);
     setCentralWidget(m_view);
+
+    auto * statisticsDock = new QDockWidget("Statistics", this);
+    statisticsDock->setWidget(m_statisticsPanel);
+    addDockWidget(Qt::BottomDockWidgetArea, statisticsDock);
+    menuBar()->addMenu("&View")->addAction(statisticsDock->toggleViewAction());
 
     statusBar()->addPermanentWidget(m_countLabel);
     statusBar()->showMessage("Disconnected");
@@ -158,6 +192,7 @@ void MainWindow::saveLog() {
 void MainWindow::showLiveTrace() {
     discardFileSource();
     setWindowTitle(kAppName);
+    m_statisticsPanel->setLive(true);
     resetTrace(kLiveMaxRows);
 }
 
@@ -165,6 +200,7 @@ void MainWindow::showFileTrace(LogFileSource * source) {
     m_source->stop();
     discardFileSource();
     m_fileSource = source;
+    m_statisticsPanel->setLive(false);
     setWindowTitle(QString("%1 - %2").arg(kAppName, QFileInfo(source->path()).fileName()));
     resetTrace(kFileMaxRows);
 }
@@ -186,6 +222,7 @@ void MainWindow::resetTrace(qsizetype maxRows) {
 
 void MainWindow::clearTrace() {
     m_model->clear();
+    m_statistics->reset();
     m_totalFrames = 0;
     updateFrameCount();
 }
@@ -208,6 +245,7 @@ void MainWindow::onLogLoaded(LogLoadSummary const & summary) {
 
 void MainWindow::onFramesReceived(QList<CanFrame> const & frames) {
     m_model->appendFrames(frames);
+    m_statistics->addFrames(frames);
     m_totalFrames += static_cast<qulonglong>(frames.size());
     updateFrameCount();
 

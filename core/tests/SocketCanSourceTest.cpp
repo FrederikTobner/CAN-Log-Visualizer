@@ -1,4 +1,4 @@
-#include "core/SocketCanSource.h"
+#include "core/SocketCanSource.hpp"
 
 #include <QtTest>
 
@@ -74,7 +74,7 @@ void SocketCanSourceTest::receivesFramesFromVcan() {
     SocketCanSource source("vcan0");
     QSignalSpy frames(&source, &CanSource::framesReceived);
     if (!source.start()) {
-        QSKIP("vcan0 is not available (see docs/usage.md)");
+        QSKIP("vcan0 is not available (see docs/manual-testing.md)");
     }
 
     QByteArray const payload = QByteArray::fromHex("deadbeef");
@@ -103,7 +103,7 @@ void SocketCanSourceTest::destroyingRunningSourceEmitsNothing() {
     auto source = std::make_unique<SocketCanSource>("vcan0");
     QSignalSpy running(source.get(), &CanSource::runningChanged);
     if (!source->start()) {
-        QSKIP("vcan0 is not available (see docs/usage.md)");
+        QSKIP("vcan0 is not available (see docs/manual-testing.md)");
     }
     QCOMPARE(running.count(), 1);
 
